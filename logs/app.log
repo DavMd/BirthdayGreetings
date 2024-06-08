@@ -1,0 +1,44 @@
+2024/06/08 11:07:53 logging.go:19: Logger initialized
+2024/06/08 11:07:54 db.go:38: Connected to the database successfully
+2024/06/08 11:07:54 main.go:27: Birthday Greetings Service is running
+2024/06/08 11:31:50 logging.go:19: Logger initialized
+2024/06/08 11:31:50 db.go:38: Connected to the database successfully
+2024/06/08 11:31:50 main.go:29: Birthday Greetings Service is running
+2024/06/08 11:31:50 main.go:38: test user 1 добавлен в базу данных
+2024/06/08 11:31:50 main.go:40: Birthday Greetings Service is stop
+2024/06/08 11:35:44 logging.go:19: Logger initialized
+2024/06/08 11:35:44 db.go:38: Connected to the database successfully
+2024/06/08 11:35:44 main.go:29: Birthday Greetings Service is running
+2024/06/08 11:35:44 main.go:38: test user 2 добавлен в базу данных
+2024/06/08 11:35:44 main.go:40: Birthday Greetings Service is stop
+2024/06/08 11:39:11 logging.go:19: Logger initialized
+2024/06/08 11:39:11 db.go:38: Connected to the database successfully
+2024/06/08 11:39:11 main.go:30: Birthday Greetings Service is running
+2024/06/08 11:39:11 main.go:38: Пользователь 1 подписался на уведомление о др пользователя 2
+2024/06/08 11:39:11 main.go:52: Birthday Greetings Service is stop
+2024/06/08 11:39:59 logging.go:19: Logger initialized
+2024/06/08 11:39:59 db.go:38: Connected to the database successfully
+2024/06/08 11:39:59 main.go:30: Birthday Greetings Service is running
+2024/06/08 11:39:59 main.go:39: test user 3 добавлен в базу данных
+2024/06/08 11:39:59 main.go:47: Пользователь 1 подписался на уведомление о др пользователя 3
+2024/06/08 11:39:59 main.go:52: Birthday Greetings Service is stop
+2024/06/08 11:43:03 logging.go:19: Logger initialized
+2024/06/08 11:43:03 db.go:38: Connected to the database successfully
+2024/06/08 11:43:03 main.go:30: Birthday Greetings Service is running
+2024/06/08 11:43:03 main.go:59: Пользователь 1 подписан на уведомление о др пользователя 2
+2024/06/08 11:43:03 main.go:59: Пользователь 1 подписан на уведомление о др пользователя 3
+2024/06/08 11:43:03 main.go:65: Birthday Greetings Service is stop
+2024/06/08 11:44:13 logging.go:19: Logger initialized
+2024/06/08 11:44:13 db.go:38: Connected to the database successfully
+2024/06/08 11:44:13 main.go:30: Birthday Greetings Service is running
+2024/06/08 11:44:13 main.go:57: Просто остановка
+2024/06/08 11:46:31 logging.go:19: Logger initialized
+2024/06/08 11:46:31 db.go:38: Connected to the database successfully
+2024/06/08 11:46:31 main.go:29: Birthday Greetings Service is running
+2024/06/08 11:46:31 main.go:67: Подписка пользователя 1 удалена с пользователя 3
+2024/06/08 11:46:31 main.go:69: Birthday Greetings Service is stop
+2024/06/08 11:48:36 logging.go:19: Logger initialized
+2024/06/08 11:48:36 db.go:38: Connected to the database successfully
+2024/06/08 11:48:36 main.go:30: Birthday Greetings Service is running
+2024/06/08 11:48:36 main.go:76: Подписка пользователя 1 на пользователя 2 - true
+2024/06/08 11:48:36 main.go:78: Birthday Greetings Service is stop
