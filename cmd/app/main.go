@@ -3,10 +3,7 @@ package main
 import (
 	"BirthdayGreetings/internal/db"
 	"BirthdayGreetings/internal/logging"
-	"BirthdayGreetings/internal/models"
-	"fmt"
 	"log"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -18,10 +15,8 @@ func main() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	// Initialize the logger
 	logging.Init("logs/app.log")
 
-	// Connect to the database
 	err = db.Connect()
 	if err != nil {
 		logging.Logger.Fatalf("could not connect to the database: %v", err)
@@ -29,6 +24,10 @@ func main() {
 
 	logging.Logger.Println("Birthday Greetings Service is running")
 
+	logging.Logger.Println("Birthday Greetings Service is stop")
+}
+
+func Test() {
 	// users := make([]models.User, 0, 1)
 
 	// users = append(users, CreateUser("test user 3", "test user 3", time.Date(2000, time.August, 27, 0, 0, 0, 0, time.Local)))
@@ -67,24 +66,22 @@ func main() {
 
 	// logging.Logger.Println("Подписка пользователя 1 удалена с пользователя 3")
 
-	IsSubscribed, err := db.IsSubscribed(1, 2)
+	// IsSubscribed, err := db.IsSubscribed(1, 2)
 
-	if err != nil {
-		logging.Logger.Fatalf("Fatal Error: %v", err)
-	}
+	// if err != nil {
+	// 	logging.Logger.Fatalf("Fatal Error: %v", err)
+	// }
 
-	logging.Logger.Println("Подписка пользователя 1 на пользователя 2 - " + fmt.Sprint(IsSubscribed))
-
-	logging.Logger.Println("Birthday Greetings Service is stop")
+	// logging.Logger.Println("Подписка пользователя 1 на пользователя 2 - " + fmt.Sprint(IsSubscribed))
 }
 
-func CreateUser(username, email string, birthday time.Time) models.User {
+// func CreateUser(username, email string, birthday time.Time) models.User {
 
-	user := models.User{
-		Username: username,
-		Email:    email,
-		Birthday: birthday,
-	}
+// 	user := models.User{
+// 		Username: username,
+// 		Email:    email,
+// 		Birthday: birthday,
+// 	}
 
-	return user
-}
+// 	return user
+// }
