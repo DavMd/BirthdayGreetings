@@ -25,10 +25,10 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (s *AuthService) RegisterUser(username, password string, telegramID int64) (*models.User, error) {
+func (s *AuthService) RegisterUser(username, password string, telegramID int64) error {
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		return nil, errors.New(500, fmt.Sprintf("could not hash password: %v", err))
+		return errors.New(500, fmt.Sprintf("could not hash password: %v", err))
 	}
 
 	user := &models.User{
@@ -37,23 +37,22 @@ func (s *AuthService) RegisterUser(username, password string, telegramID int64) 
 		TelegramID: telegramID,
 	}
 
-	err = db.CreateUser(user)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	return db.CreateUser(user)
 }
 
-func (s *AuthService) AuthenticateUser(username, password string) (*models.User, error) {
+func (s *AuthService) AuthenticateUser(username, password string, telegramID int64) (string, error) {
 	user, err := db.GetUserByName(username)
 	if err != nil {
-		return nil, errors.New(400, "invalid username or password")
+		return "", err
+	}
+
+	if user.TelegramID != telegramID {
+		return "", errors.New(401, "incorrect telegram account")
 	}
 
 	if !CheckPasswordHash(password, user.Password) {
-		return nil, errors.New(400, "invalid username or password")
+		return "", errors.New(401, "invalid username or password")
 	}
 
-	return user, nil
+	return username, nil
 }
