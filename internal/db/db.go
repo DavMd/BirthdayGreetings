@@ -14,34 +14,34 @@ import (
 
 var DB *sql.DB
 
-func createUserTable() error {
-	queryUser := `CREATE TABLE users (
-				id SERIAL PRIMARY KEY,
-				username VARCHAR(255) NOT NULL UNIQUE,
-				password VARCHAR(255) NOT NULL,
-				telegram_id BIGINT NOT NULL UNIQUE,
-				birthday DATE);`
-	if _, err := DB.Exec(queryUser); err != nil {
-		return errors.New(500, fmt.Sprintf("could not create users table: %v", err))
-	}
+// func createUserTable() error {
+// 	queryUser := `CREATE TABLE users (
+// 				id SERIAL PRIMARY KEY,
+// 				username VARCHAR(255) NOT NULL UNIQUE,
+// 				password VARCHAR(255) NOT NULL,
+// 				telegram_id BIGINT NOT NULL UNIQUE,
+// 				birthday DATE);`
+// 	if _, err := DB.Exec(queryUser); err != nil {
+// 		return errors.New(500, fmt.Sprintf("could not create users table: %v", err))
+// 	}
 
-	logging.Logger.Println("Successfull DB User Table Creation")
-	return nil
-}
+// 	logging.Logger.Println("Successfull DB User Table Creation")
+// 	return nil
+// }
 
-func createSubsTable() error {
-	querySubscription := `CREATE TABLE subscriptions (
-						id SERIAL PRIMARY KEY,
-						user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-						subscribed_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-						UNIQUE (user_id, subscribed_user_id));`
+// func createSubsTable() error {
+// 	querySubscription := `CREATE TABLE subscriptions (
+// 						id SERIAL PRIMARY KEY,
+// 						user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+// 						subscribed_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+// 						UNIQUE (user_id, subscribed_user_id));`
 
-	if _, err := DB.Exec(querySubscription); err != nil {
-		return errors.New(500, fmt.Sprintf("could not create subcriptions table: %v", err))
-	}
-	logging.Logger.Println("Successfull DB Subscription Table Creation")
-	return nil
-}
+// 	if _, err := DB.Exec(querySubscription); err != nil {
+// 		return errors.New(500, fmt.Sprintf("could not create subcriptions table: %v", err))
+// 	}
+// 	logging.Logger.Println("Successfull DB Subscription Table Creation")
+// 	return nil
+// }
 
 func Connect() error {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
@@ -64,38 +64,59 @@ func Connect() error {
 
 	logging.Logger.Println("Connected to the database successfully")
 
-	if err = checkTables(); err != nil {
-		logging.Logger.Fatalf("Couldn't create tables: %v", err)
-	}
+	// if err = checkTables(); err != nil {
+	// 	logging.Logger.Fatalf("Couldn't create tables: %v", err)
+	// }
 
 	return nil
 }
 
-func checkTables() error {
-	query := `select relname from pg_stat_user_tables`
-	rows, err := DB.Query(query)
-	if err != nil {
-		return errors.New(400, fmt.Sprintf("query error: %v", err))
-	}
+// func checkTables() error {
+// 	query := `select relname from pg_stat_user_tables`
+// 	rows, err := DB.Query(query)
+// 	if err != nil {
+// 		return errors.New(400, fmt.Sprintf("query error: %v", err))
+// 	}
 
-	rows.Next()
-	if err := rows.Scan(); err != nil {
-		if err := createUserTable(); err != nil {
-			return err
-		}
-		if err := createSubsTable(); err != nil {
-			return err
-		}
-		return nil
-	}
+// 	rows.Next()
+// 	if err := rows.Scan(); err != nil {
+// 		if err := createUserTable(); err != nil {
+// 			return err
+// 		}
+// 		if err := createSubsTable(); err != nil {
+// 			return err
+// 		}
+// 		return nil
+// 	}
 
-	rows.Close()
-	return nil
-}
+// 	rows.Close()
+// 	return nil
+// }
 
 func CreateUser(user *models.User) error {
-	query := `INSERT INTO users (username, password, telegram_id, birthday) VALUES ($1, $2, $3, $4) RETURNING id`
-	err := DB.QueryRow(query, user.Username, user.Password, user.TelegramID, user.Birthday).Scan(&user.ID)
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)`
+	var exists bool
+	err := DB.QueryRow(query, user.Username).Scan(&exists)
+	if err != nil {
+		return errors.New(400, fmt.Sprintf("user check failed: %v", err))
+	}
+
+	if exists {
+		return errors.New(409, "Пользователь с таким именем уже существует")
+	}
+
+	query = `SELECT EXISTS(SELECT 1 FROM users WHERE telegram_id = $1)`
+	err = DB.QueryRow(query, user.TelegramID).Scan(&exists)
+	if err != nil {
+		return errors.New(400, fmt.Sprintf("user check failed: %v", err))
+	}
+
+	if exists {
+		return errors.New(409, "На этот телеграмм аккаунт уже зарегистрирован пользователь")
+	}
+
+	query = `INSERT INTO users (username, password, telegram_id, birthday) VALUES ($1, $2, $3, $4) RETURNING id`
+	err = DB.QueryRow(query, user.Username, user.Password, user.TelegramID, user.Birthday).Scan(&user.ID)
 	if err != nil {
 		return errors.New(400, fmt.Sprintf("could not create user: %v", err))
 	}
@@ -103,7 +124,7 @@ func CreateUser(user *models.User) error {
 }
 
 func CreateSubscription(sub *models.Subscription) error {
-	query := `INSERT INTO subscriptions (subscriber_id, subscribed_user_id) VALUES ($1, $2) RETURNING id`
+	query := `INSERT INTO subscriptions (user_id, subscribed_user_id) VALUES ($1, $2) RETURNING id`
 	err := DB.QueryRow(query, sub.SubscriberID, sub.SubscribedUserID).Scan(&sub.ID)
 	if err != nil {
 		return errors.New(400, fmt.Sprintf("could not create subscription: %v", err))
@@ -112,7 +133,7 @@ func CreateSubscription(sub *models.Subscription) error {
 }
 
 func DeleteSubscription(subscriberID, subscribedUserID int64) error {
-	query := `DELETE FROM subscriptions WHERE subscriber_id = $1 AND subscribed_user_id = $2`
+	query := `DELETE FROM subscriptions WHERE user_id = $1 AND subscribed_user_id = $2`
 	result, err := DB.Exec(query, subscriberID, subscribedUserID)
 	if err != nil {
 		return errors.New(400, fmt.Sprintf("could not delete subscription: %v", err))
@@ -214,4 +235,58 @@ func GetUserByName(username string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func GetUserByTgID(telegramID int64) (*models.User, error) {
+	query := `SELECT id, username, password, telegram_id, birthday FROM users WHERE telegram_id = $1`
+	row := DB.QueryRow(query, telegramID)
+
+	var user models.User
+	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.TelegramID, &user.Birthday)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New(404, "user not found")
+		}
+		return nil, errors.New(500, fmt.Sprintf("could not get user by username: %v", err))
+	}
+
+	return &user, nil
+}
+
+func GetAllUsers() ([]*models.UserBirthLayout, error) {
+	rows, err := DB.Query(`SELECT username, birthday, telegram_id FROM users`)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*models.UserBirthLayout
+	for rows.Next() {
+		var user models.UserBirthLayout
+		err := rows.Scan(&user.Username, &user.Birthday, &user.TelegramID)
+		if err != nil {
+			return nil, errors.New(500, fmt.Sprintf("could not scan user: %v", err))
+		}
+		users = append(users, &user)
+	}
+
+	return users, nil
+}
+
+func SetUserBirthday(telegramID int64, birthday string) error {
+	query := `UPDATE users SET birthday = $1 WHERE telegram_id = $2`
+	_, err := DB.Exec(query, birthday, telegramID)
+	if err != nil {
+		return errors.New(500, fmt.Sprintf("could not set birthday: %v", err))
+	}
+	return nil
+}
+
+func UpdateUser(user *models.User) error {
+	query := `UPDATE users SET username = $1, password = $2, telegram_id = $3, birthday = $4 WHERE id = $5`
+	_, err := DB.Exec(query, user.Username, user.Password, user.TelegramID, user.Birthday, user.ID)
+	if err != nil {
+		return errors.New(500, fmt.Sprintf("could not update user: %v", err))
+	}
+	return nil
 }
