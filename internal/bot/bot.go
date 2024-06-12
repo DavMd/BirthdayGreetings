@@ -214,7 +214,7 @@ func (s *BotService) handleRegisterCommand(message *tgbotapi.Message) {
 	}
 
 	s.pendingCmd[message.Chat.ID] = "/register"
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Пожалуйства введите username and password.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Пожалуйства введите username и password.")
 	s.bot.Send(msg)
 }
 
