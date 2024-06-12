@@ -9,3 +9,9 @@ type User struct {
 	TelegramID int64     `json:"telegram_id" db:"telegram_id"`
 	Birthday   time.Time `json:"birthday" db:"birthday"`
 }
+
+type UserBirthLayout struct {
+	Username   string    `json:"username" db:"username"`
+	TelegramID int64     `json:"telegram_id" db:"telegram_id"`
+	Birthday   time.Time `json:"birthday" db:"birthday"`
+}

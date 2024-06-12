@@ -4,23 +4,22 @@ import (
 	"fmt"
 )
 
-type CurstomError struct {
+type CustomError struct {
 	Code    int
 	Message string
 }
 
-func (e *CurstomError) Error() string {
+func (e *CustomError) ErrorWithCode() string {
 	return fmt.Sprintf("Code: %d, Message: %s", e.Code, e.Message)
 }
 
+func (e *CustomError) Error() string {
+	return fmt.Sprintf("Message: %s", e.Message)
+}
+
 func New(code int, message string) error {
-	return &CurstomError{
+	return &CustomError{
 		Code:    code,
 		Message: message,
 	}
-}
-
-func IsCustomError(err error) bool {
-	_, ok := err.(*CurstomError)
-	return ok
 }
