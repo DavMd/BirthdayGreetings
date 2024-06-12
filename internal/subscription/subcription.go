@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"BirthdayGreetings/internal/db"
+	"BirthdayGreetings/internal/errors"
 	"BirthdayGreetings/internal/models"
 )
 
@@ -11,30 +12,31 @@ func NewSubscriptionService() *SubscriptionService {
 	return &SubscriptionService{}
 }
 
-func (s *SubscriptionService) CreateSubscription(subscriberID, subscribedUserID int64) (*models.Subscription, error) {
+func (s *SubscriptionService) SubscribeUser(subscriberID, subscribedUserID int64) error {
+
+	exists, err := db.IsSubscribed(subscriberID, subscribedUserID)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return errors.New(403, "подписка уже существует")
+	}
+
 	sub := &models.Subscription{
 		SubscriberID:     subscriberID,
 		SubscribedUserID: subscribedUserID,
 	}
-	if err := db.CreateSubscription(sub); err != nil {
-		return nil, err
-	}
-	return sub, nil
+	return db.CreateSubscription(sub)
 }
 
-func (s *SubscriptionService) DeleteSubscription(subscriberID, subscribedUserID int64) error {
-	if err := db.DeleteSubscription(subscriberID, subscribedUserID); err != nil {
-		return err
-	}
-	return nil
+func (s *SubscriptionService) UnsubscribeUser(subscriberID, subscribedUserID int64) error {
+	return db.DeleteSubscription(subscriberID, subscribedUserID)
 }
 
-func (s *SubscriptionService) GetSubscriptions(userID int64) ([]models.Subscription, error) {
-	subscriptions, err := db.GetSubscriptions(userID)
-	if err != nil {
-		return nil, err
-	}
-	return subscriptions, nil
+func (s *SubscriptionService) GetSubscriptions(userID int64) ([]models.User, error) {
+	subscriptions, err := db.GetSubscribers(userID)
+	return subscriptions, err
 }
 
 func (s *SubscriptionService) IsSubscribed(subscriberID, subscribedUserID int64) (bool, error) {

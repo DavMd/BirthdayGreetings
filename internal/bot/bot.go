@@ -1,39 +1,55 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 
 	"BirthdayGreetings/internal/auth"
+	"BirthdayGreetings/internal/logging"
 	"BirthdayGreetings/internal/service"
+	"BirthdayGreetings/internal/subscription"
+	"BirthdayGreetings/internal/telegram"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type BotService struct {
-	bot          *tgbotapi.BotAPI
-	authService  *auth.AuthService
-	userService  *service.UserService
-	pendingCmd   map[int64]string
-	sessionStore map[int64]bool
-	mu           sync.Mutex
+	bot            *tgbotapi.BotAPI
+	authService    *auth.AuthService
+	userService    *service.UserService
+	subService     *subscription.SubscriptionService
+	telegramClient *telegram.Client
+	pendingCmd     map[int64]string
+	sessionStore   map[int64]bool
+	mu             sync.Mutex
+	adminID        int64
 }
 
-func NewBotService(authService *auth.AuthService, userService *service.UserService) (*BotService, error) {
+func NewBotService(authService *auth.AuthService, userService *service.UserService, subService *subscription.SubscriptionService, telegramClient *telegram.Client) (*BotService, error) {
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		return nil, err
 	}
 
+	adminID, err := strconv.Atoi(os.Getenv("ADMIN_ID"))
+	if err != nil {
+		logging.Logger.Fatalf("Ошибка парсинга ADMIN_ID: %v", err)
+	}
+
 	return &BotService{
-		bot:          bot,
-		authService:  authService,
-		userService:  userService,
-		pendingCmd:   make(map[int64]string),
-		sessionStore: make(map[int64]bool),
+		bot:            bot,
+		authService:    authService,
+		userService:    userService,
+		subService:     subService,
+		telegramClient: telegramClient,
+		pendingCmd:     make(map[int64]string),
+		sessionStore:   make(map[int64]bool),
+		adminID:        int64(adminID),
 	}, nil
 }
 
@@ -66,7 +82,7 @@ func (s *BotService) handleMessage(message *tgbotapi.Message) {
 		s.handleRegisterCommand(message)
 	default:
 		if !s.isLoggedIn(message.Chat.ID) {
-			msg := tgbotapi.NewMessage(message.Chat.ID, "You need to log in first. Use /login username password.")
+			msg := tgbotapi.NewMessage(message.Chat.ID, "Вы должны сначала ввойти в аккаунт.\nИспользуйте команду /login username password.")
 			s.bot.Send(msg)
 			return
 		}
@@ -79,10 +95,12 @@ func (s *BotService) handleMessage(message *tgbotapi.Message) {
 			s.handleSubscribeCommand(message)
 		case "/unsubscribe":
 			s.handleUnsubscribeCommand(message)
+		case "/getallsubscriptions":
+			s.handleGetAllUserSubscriptions(message)
 		case "/logout":
 			s.handeLogoutCommand(message)
 		default:
-			msg := tgbotapi.NewMessage(message.Chat.ID, "Unknown command.")
+			msg := tgbotapi.NewMessage(message.Chat.ID, "Неизвестная команда.")
 			s.bot.Send(msg)
 		}
 	}
@@ -106,34 +124,34 @@ func (s *BotService) handleCommandResponse(message *tgbotapi.Message, cmd string
 	switch cmd {
 	case "/login":
 		if len(args) != 2 {
-			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Invalid login format. Use username password"))
+			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Неверный формат входа. Используйте username password"))
 			s.pendingCmd[message.Chat.ID] = "/login"
 			return
 		}
 		s.handleLoginCommandArgs(message, args)
 	case "/register":
 		if len(args) != 2 {
-			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Invalid register format. Use username password"))
+			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Неверный формат регистрации. Используйте username password"))
 			return
 		}
 		s.handleRegisterCommandArgs(message, args)
 	case "/setbirthday":
 		if len(args) != 1 {
-			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Invalid format. Use YYYY-MM-DD"))
+			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Неверный формат даты. Используйте YYYY-MM-DD"))
 			s.pendingCmd[message.Chat.ID] = "/setbirthday"
 			return
 		}
 		s.handleSetBirthdayCommandArgs(message, args[0])
 	case "/subscribe":
 		if len(args) != 1 {
-			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Invalid format. Use username"))
+			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Неверный формат. Используйте username"))
 			s.pendingCmd[message.Chat.ID] = "/subscribe"
 			return
 		}
 		s.handleSubscribeCommandArgs(message, args[0])
 	case "/unsubscribe":
 		if len(args) != 1 {
-			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Invalid format. Use username"))
+			s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Неверный формат. Используйте username"))
 			s.pendingCmd[message.Chat.ID] = "/unsubscribe"
 			return
 		}
@@ -144,24 +162,24 @@ func (s *BotService) handleCommandResponse(message *tgbotapi.Message, cmd string
 
 func (s *BotService) handleStartCommand(message *tgbotapi.Message) {
 	if s.isLoggedIn(message.Chat.ID) {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "You can now subcribe to users birthday date, unsubscribe, set your birthday date and get all users list")
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Вы можете теперь подписываться и отписываться на день рождения других пользователей, получать список своих подписок и других пользователей.")
 		s.bot.Send(msg)
 		return
 	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Welcome! You can register or login by sending your username and password in the following format:\n/login username password")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Добро пожаловать в бота BirthdayGreetings. Вы можете зарегистрироваться либо войти в свой аккаунт. Для этого введите /login или /register username и password.")
 	s.bot.Send(msg)
 }
 
 func (s *BotService) handleLoginCommand(message *tgbotapi.Message) {
 	if s.isLoggedIn(message.Chat.ID) {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "You are already logged in.")
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Вы уже в аккаунте.")
 		s.bot.Send(msg)
 		return
 	}
 
 	s.pendingCmd[message.Chat.ID] = "/login"
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Please enter your username and password separated by a space.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Пожалуйства введите username и password.")
 	s.bot.Send(msg)
 }
 
@@ -172,31 +190,31 @@ func (s *BotService) handleLoginCommandArgs(message *tgbotapi.Message, args []st
 
 	name, err := s.authService.AuthenticateUser(username, password, telegramID)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Login failed: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка входа: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 	s.setLoggedIn(message.Chat.ID, true)
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Login successful! Welcome, "+name)
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Вход успешный. Добро пожаловать, "+name)
 	s.bot.Send(msg)
 }
 
 func (s *BotService) handleRegisterCommand(message *tgbotapi.Message) {
 	if s.isLoggedIn(message.Chat.ID) {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "You are already logged in.")
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Вы уже вошли в аккаунт.")
 		s.bot.Send(msg)
 		return
 	}
 
 	user, err := s.userService.GetUserByTgID(message.From.ID)
 	if err == nil && user != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "You are already registered.")
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ваш аккаунт уже зарегистрирован.")
 		s.bot.Send(msg)
 		return
 	}
 
 	s.pendingCmd[message.Chat.ID] = "/register"
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Please enter your username and password separated by a space to register.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Пожалуйства введите username and password.")
 	s.bot.Send(msg)
 }
 
@@ -207,18 +225,18 @@ func (s *BotService) handleRegisterCommandArgs(message *tgbotapi.Message, args [
 
 	err := s.authService.RegisterUser(username, password, telegramID)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Registration failed: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка регистрации: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Registration successful! You can now login with /login and then update your birthday date with /setbirthday")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Регистрация успешна! Теперь вы можете войти, используя команду /login.\nСразу же после этого введите вашу дату рождения командой /setbirthday")
 	s.bot.Send(msg)
 }
 
 func (s *BotService) handleSetBirthdayCommand(message *tgbotapi.Message) {
 	s.pendingCmd[message.Chat.ID] = "/setbirthday"
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Please enter your birthday in the format YYYY-MM-DD.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Введите дату рождения в формате YYYY-MM-DD.")
 	s.bot.Send(msg)
 }
 
@@ -227,12 +245,12 @@ func (s *BotService) handleSetBirthdayCommandArgs(message *tgbotapi.Message, bir
 
 	err := s.userService.SetUserBirthday(telegramID, birthday)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not set birthday: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка обновления даты рождения: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Birthday set successfully.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Дата рождения успешна изменена.")
 	s.bot.Send(msg)
 }
 
@@ -245,7 +263,7 @@ func (s *BotService) handeLogoutCommand(message *tgbotapi.Message) {
 func (s *BotService) handleUsersListCommand(message *tgbotapi.Message) {
 	users, err := s.userService.GetAllUsers()
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not retrieve users: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка в получении пользователей: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
@@ -255,7 +273,7 @@ func (s *BotService) handleUsersListCommand(message *tgbotapi.Message) {
 		if user.TelegramID == message.From.ID {
 			continue
 		}
-		userList += fmt.Sprintf("Username: %s, Birthday: %s\n", user.Username, fmt.Sprint(user.Birthday.Day())+"."+user.Birthday.Month().String()+"."+fmt.Sprint(user.Birthday.Year()))
+		userList += fmt.Sprintf("Пользователь: %s, Дата рождения: %s\n", user.Username, fmt.Sprint(user.Birthday.Day())+"."+user.Birthday.Month().String()+"."+fmt.Sprint(user.Birthday.Year()))
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, userList)
@@ -264,70 +282,100 @@ func (s *BotService) handleUsersListCommand(message *tgbotapi.Message) {
 
 func (s *BotService) handleSubscribeCommand(message *tgbotapi.Message) {
 	s.pendingCmd[message.Chat.ID] = "/subscribe"
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Please enter the username you want to subscribe to.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Введите имя пользователя на которого хотите подписаться.")
 	s.bot.Send(msg)
 }
 
 func (s *BotService) handleSubscribeCommandArgs(message *tgbotapi.Message, username string) {
 	currentUser, err := s.userService.GetUserByTgID(message.From.ID)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not find current user: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка в поиске пользователя: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
 	subscribedUser, err := s.userService.GetUserByName(username)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not find user: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Не удалось найти пользователя: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
 	if currentUser.TelegramID == subscribedUser.TelegramID {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "You can't subscribe yourself birthday date")
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Вы не можете подписаться сами на себя")
 		s.bot.Send(msg)
 		return
 	}
 
-	err = s.userService.SubscribeUser(currentUser.ID, subscribedUser.ID)
+	err = s.subService.SubscribeUser(currentUser.ID, subscribedUser.ID)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not subscribe: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка при подписке: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Subscribed to "+subscribedUser.Username+" successfully.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Успешная подписка на пользователя "+subscribedUser.Username+".")
 	s.bot.Send(msg)
 }
 
 func (s *BotService) handleUnsubscribeCommand(message *tgbotapi.Message) {
 	s.pendingCmd[message.Chat.ID] = "/unsubscribe"
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Please enter the username you want to unsubscribe from.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Введите имя пользователя от которого хотите отписаться.")
 	s.bot.Send(msg)
 }
 
 func (s *BotService) handleUnsubscribeCommandArgs(message *tgbotapi.Message, username string) {
 	currentUser, err := s.userService.GetUserByTgID(message.From.ID)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not find current user: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка в поиске пользователя: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
 	subscribedUser, err := s.userService.GetUserByName(username)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not find user: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Ошибка в поиске пользователя: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
-	err = s.userService.UnubscribeUser(currentUser.ID, subscribedUser.ID)
+	err = s.subService.UnsubscribeUser(currentUser.ID, subscribedUser.ID)
 	if err != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, "Could not unsubscribe: "+err.Error())
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Отписка не удалась: "+err.Error())
 		s.bot.Send(msg)
 		return
 	}
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Unsubscribed to "+subscribedUser.Username+" successfully.")
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Вы успешно отписались от пользователя "+subscribedUser.Username+".")
 	s.bot.Send(msg)
+}
+
+func (s *BotService) handleGetAllUserSubscriptions(message *tgbotapi.Message) {
+	subscriptions, err := s.subService.GetSubscriptions(message.From.ID)
+	if err != nil {
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Не удалось получить подписки пользователя: "+err.Error())
+		s.bot.Send(msg)
+		return
+	}
+	returnMessage := "Пользователь подписан на:\n"
+	for _, sub := range subscriptions {
+		returnMessage += sub.Username + "\n"
+	}
+	msg := tgbotapi.NewMessage(message.Chat.ID, returnMessage)
+	s.bot.Send(msg)
+
+}
+
+func (s *BotService) SendMessageToChannel(ctx context.Context, channelID int64, message string) error {
+	msg := tgbotapi.NewMessage(channelID, message)
+	_, err := s.bot.Send(msg)
+	return err
+}
+
+func (s *BotService) GetBotID() int64 {
+	return s.bot.Self.ID
+}
+
+func (s *BotService) GetAdminID() int64 {
+	return s.adminID
 }

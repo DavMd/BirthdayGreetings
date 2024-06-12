@@ -55,18 +55,14 @@ func Connect() error {
 	var err error
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
-		return errors.New(500, fmt.Sprintf("could not open db: %v", err))
+		return errors.New(500, fmt.Sprintf("ошибка подключения к базе данных: %v", err))
 	}
 
 	if err := DB.Ping(); err != nil {
-		return errors.New(500, fmt.Sprintf("could not ping db: %v", err))
+		return errors.New(500, fmt.Sprintf("ошибка в пинге базы данных: %v", err))
 	}
 
-	logging.Logger.Println("Connected to the database successfully")
-
-	// if err = checkTables(); err != nil {
-	// 	logging.Logger.Fatalf("Couldn't create tables: %v", err)
-	// }
+	logging.Logger.Println("Успешное подключение к базе данных.")
 
 	return nil
 }
@@ -94,31 +90,25 @@ func Connect() error {
 // }
 
 func CreateUser(user *models.User) error {
-	query := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)`
-	var exists bool
-	err := DB.QueryRow(query, user.Username).Scan(&exists)
+	query := `SELECT username, telegram_id FROM users WHERE username = $1 or telegram_id = $2)`
+	var tempUser models.User
+	err := DB.QueryRow(query, user.Username, user.TelegramID).Scan(&tempUser.Username, &tempUser.TelegramID)
 	if err != nil {
-		return errors.New(400, fmt.Sprintf("user check failed: %v", err))
+		return errors.New(400, fmt.Sprintf("Ошибка: %v", err))
 	}
 
-	if exists {
+	if tempUser.Username == user.Username {
 		return errors.New(409, "Пользователь с таким именем уже существует")
 	}
 
-	query = `SELECT EXISTS(SELECT 1 FROM users WHERE telegram_id = $1)`
-	err = DB.QueryRow(query, user.TelegramID).Scan(&exists)
-	if err != nil {
-		return errors.New(400, fmt.Sprintf("user check failed: %v", err))
-	}
-
-	if exists {
+	if tempUser.TelegramID == user.TelegramID {
 		return errors.New(409, "На этот телеграмм аккаунт уже зарегистрирован пользователь")
 	}
 
 	query = `INSERT INTO users (username, password, telegram_id, birthday) VALUES ($1, $2, $3, $4) RETURNING id`
 	err = DB.QueryRow(query, user.Username, user.Password, user.TelegramID, user.Birthday).Scan(&user.ID)
 	if err != nil {
-		return errors.New(400, fmt.Sprintf("could not create user: %v", err))
+		return errors.New(400, fmt.Sprintf("ошибка в создании пользователя: %v", err))
 	}
 	return nil
 }
@@ -127,7 +117,7 @@ func CreateSubscription(sub *models.Subscription) error {
 	query := `INSERT INTO subscriptions (user_id, subscribed_user_id) VALUES ($1, $2) RETURNING id`
 	err := DB.QueryRow(query, sub.SubscriberID, sub.SubscribedUserID).Scan(&sub.ID)
 	if err != nil {
-		return errors.New(400, fmt.Sprintf("could not create subscription: %v", err))
+		return errors.New(400, fmt.Sprintf("не удалось подписаться: %v", err))
 	}
 	return nil
 }
@@ -136,38 +126,19 @@ func DeleteSubscription(subscriberID, subscribedUserID int64) error {
 	query := `DELETE FROM subscriptions WHERE user_id = $1 AND subscribed_user_id = $2`
 	result, err := DB.Exec(query, subscriberID, subscribedUserID)
 	if err != nil {
-		return errors.New(400, fmt.Sprintf("could not delete subscription: %v", err))
+		return errors.New(400, fmt.Sprintf("не удалось отписаться: %v", err))
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return errors.New(500, fmt.Sprintf("could not get affected rows: %v", err))
+		return errors.New(404, fmt.Sprintf("нет строк для изменения: %v", err))
 	}
 
 	if rowsAffected == 0 {
-		return errors.New(404, "subscription not found")
+		return errors.New(404, "подписка не найдена")
 	}
 
 	return nil
-}
-
-func GetSubscriptions(userID int64) ([]models.Subscription, error) {
-	query := `SELECT id, subscriber_id, subscribed_user_id FROM subscriptions WHERE subscriber_id = $1`
-	rows, err := DB.Query(query, userID)
-	if err != nil {
-		return nil, errors.New(400, fmt.Sprintf("could not get subscriptions: %v", err))
-	}
-	defer rows.Close()
-
-	var subscriptions []models.Subscription
-	for rows.Next() {
-		var sub models.Subscription
-		if err := rows.Scan(&sub.ID, &sub.SubscriberID, &sub.SubscribedUserID); err != nil {
-			return nil, errors.New(400, fmt.Sprintf("could not scan subscription: %v", err))
-		}
-		subscriptions = append(subscriptions, sub)
-	}
-	return subscriptions, nil
 }
 
 func IsSubscribed(subscriberID, subscribedUserID int64) (bool, error) {
@@ -175,7 +146,7 @@ func IsSubscribed(subscriberID, subscribedUserID int64) (bool, error) {
 	var exists bool
 	err := DB.QueryRow(query, subscriberID, subscribedUserID).Scan(&exists)
 	if err != nil {
-		return false, errors.New(400, fmt.Sprintf("could not check subscription: %v", err))
+		return false, errors.New(400, fmt.Sprintf("ошибка в проверке подписки: %v", err))
 	}
 	return exists, nil
 }
@@ -187,7 +158,7 @@ func GetSubscribers(userID int64) ([]models.User, error) {
 			WHERE subscriptions.subscribed_user_id = $1`
 	rows, err := DB.Query(query, userID)
 	if err != nil {
-		return nil, errors.New(400, fmt.Sprintf("could not get subscribers: %v", err))
+		return nil, errors.New(400, fmt.Sprintf("не удалось получить пользователей: %v", err))
 	}
 	defer rows.Close()
 
@@ -195,26 +166,26 @@ func GetSubscribers(userID int64) ([]models.User, error) {
 	for rows.Next() {
 		var user models.User
 		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.TelegramID, &user.Birthday); err != nil {
-			return nil, errors.New(400, fmt.Sprintf("could not scan user: %v", err))
+			return nil, errors.New(400, fmt.Sprintf("ошибка в получении пользователя: %v", err))
 		}
 		subscribers = append(subscribers, user)
 	}
 	return subscribers, nil
 }
 
-func GetUsersWithBirthday(date string) ([]models.User, error) {
-	query := `SELECT id, username, password, telegram_id, birthday FROM users WHERE to_char(birthday, 'MM-DD') = $1`
+func GetUsersWithBirthday(date string) ([]models.UserBirthLayout, error) {
+	query := `SELECT username, telegram_id, birthday FROM users WHERE to_char(birthday, 'MM-DD') = $1`
 	rows, err := DB.Query(query, date)
 	if err != nil {
-		return nil, errors.New(400, fmt.Sprintf("could not get users with birthday: %v", err))
+		return nil, errors.New(400, fmt.Sprintf("ошибка в получении пользователей: %v", err))
 	}
 	defer rows.Close()
 
-	var users []models.User
+	var users []models.UserBirthLayout
 	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.TelegramID, &user.Birthday); err != nil {
-			return nil, errors.New(400, fmt.Sprintf("could not scan user: %v", err))
+		var user models.UserBirthLayout
+		if err := rows.Scan(&user.Username, &user.TelegramID, &user.Birthday); err != nil {
+			return nil, errors.New(400, fmt.Sprintf("ошибка в получении пользователя: %v", err))
 		}
 		users = append(users, user)
 	}
@@ -229,9 +200,9 @@ func GetUserByName(username string) (*models.User, error) {
 	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.TelegramID, &user.Birthday)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New(404, "user not found")
+			return nil, errors.New(404, "пользователь не найден")
 		}
-		return nil, errors.New(500, fmt.Sprintf("could not get user by username: %v", err))
+		return nil, errors.New(400, fmt.Sprintf("не удалось получить пользователя: %v", err))
 	}
 
 	return &user, nil
@@ -245,9 +216,9 @@ func GetUserByTgID(telegramID int64) (*models.User, error) {
 	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.TelegramID, &user.Birthday)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New(404, "user not found")
+			return nil, errors.New(404, "пользователь не найден")
 		}
-		return nil, errors.New(500, fmt.Sprintf("could not get user by username: %v", err))
+		return nil, errors.New(400, fmt.Sprintf("не удалось получить пользователя: %v", err))
 	}
 
 	return &user, nil
@@ -256,7 +227,7 @@ func GetUserByTgID(telegramID int64) (*models.User, error) {
 func GetAllUsers() ([]*models.UserBirthLayout, error) {
 	rows, err := DB.Query(`SELECT username, birthday, telegram_id FROM users`)
 	if err != nil {
-		return nil, fmt.Errorf("could not retrieve users: %w", err)
+		return nil, fmt.Errorf("ошибка в получении пользователей: %w", err)
 	}
 	defer rows.Close()
 
@@ -265,7 +236,7 @@ func GetAllUsers() ([]*models.UserBirthLayout, error) {
 		var user models.UserBirthLayout
 		err := rows.Scan(&user.Username, &user.Birthday, &user.TelegramID)
 		if err != nil {
-			return nil, errors.New(500, fmt.Sprintf("could not scan user: %v", err))
+			return nil, errors.New(500, fmt.Sprintf("ошибка в получении пользователя: %v", err))
 		}
 		users = append(users, &user)
 	}
@@ -277,7 +248,7 @@ func SetUserBirthday(telegramID int64, birthday string) error {
 	query := `UPDATE users SET birthday = $1 WHERE telegram_id = $2`
 	_, err := DB.Exec(query, birthday, telegramID)
 	if err != nil {
-		return errors.New(500, fmt.Sprintf("could not set birthday: %v", err))
+		return errors.New(400, fmt.Sprintf("ошибка в обновлении дня рождения: %v", err))
 	}
 	return nil
 }
@@ -286,7 +257,7 @@ func UpdateUser(user *models.User) error {
 	query := `UPDATE users SET username = $1, password = $2, telegram_id = $3, birthday = $4 WHERE id = $5`
 	_, err := DB.Exec(query, user.Username, user.Password, user.TelegramID, user.Birthday, user.ID)
 	if err != nil {
-		return errors.New(500, fmt.Sprintf("could not update user: %v", err))
+		return errors.New(400, fmt.Sprintf("ошибка в обновлении пользователя: %v", err))
 	}
 	return nil
 }
