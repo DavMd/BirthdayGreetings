@@ -1,18 +1,22 @@
 package auth
 
 import (
-	"BirthdayGreetings/internal/db"
 	"BirthdayGreetings/internal/errors"
 	"BirthdayGreetings/internal/models"
+	"BirthdayGreetings/internal/service"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthService struct{}
+type AuthService struct {
+	userService *service.UserService
+}
 
-func NewAuthService() *AuthService {
-	return &AuthService{}
+func NewAuthService(userService *service.UserService) *AuthService {
+	return &AuthService{
+		userService: userService,
+	}
 }
 
 func HashPassword(password string) (string, error) {
@@ -28,7 +32,7 @@ func CheckPasswordHash(password, hash string) bool {
 func (s *AuthService) RegisterUser(username, password string, telegramID int64) error {
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		return errors.New(500, fmt.Sprintf("could not hash password: %v", err))
+		return errors.New(401, fmt.Sprintf("не удалось хэшировать пароль: %v", err))
 	}
 
 	user := &models.User{
@@ -37,21 +41,21 @@ func (s *AuthService) RegisterUser(username, password string, telegramID int64) 
 		TelegramID: telegramID,
 	}
 
-	return db.CreateUser(user)
+	return s.userService.CreateUser(user)
 }
 
 func (s *AuthService) AuthenticateUser(username, password string, telegramID int64) (string, error) {
-	user, err := db.GetUserByName(username)
+	user, err := s.userService.GetUserByName(username)
 	if err != nil {
 		return "", err
 	}
 
 	if user.TelegramID != telegramID {
-		return "", errors.New(401, "incorrect telegram account")
+		return "", errors.New(401, "неверный телеграмм аккаунт")
 	}
 
 	if !CheckPasswordHash(password, user.Password) {
-		return "", errors.New(401, "invalid username or password")
+		return "", errors.New(401, "неверный логин и/или пароль")
 	}
 
 	return username, nil
