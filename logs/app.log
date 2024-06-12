@@ -1,44 +1,190 @@
-2024/06/08 11:07:53 logging.go:19: Logger initialized
-2024/06/08 11:07:54 db.go:38: Connected to the database successfully
-2024/06/08 11:07:54 main.go:27: Birthday Greetings Service is running
-2024/06/08 11:31:50 logging.go:19: Logger initialized
-2024/06/08 11:31:50 db.go:38: Connected to the database successfully
-2024/06/08 11:31:50 main.go:29: Birthday Greetings Service is running
-2024/06/08 11:31:50 main.go:38: test user 1 добавлен в базу данных
-2024/06/08 11:31:50 main.go:40: Birthday Greetings Service is stop
-2024/06/08 11:35:44 logging.go:19: Logger initialized
-2024/06/08 11:35:44 db.go:38: Connected to the database successfully
-2024/06/08 11:35:44 main.go:29: Birthday Greetings Service is running
-2024/06/08 11:35:44 main.go:38: test user 2 добавлен в базу данных
-2024/06/08 11:35:44 main.go:40: Birthday Greetings Service is stop
-2024/06/08 11:39:11 logging.go:19: Logger initialized
-2024/06/08 11:39:11 db.go:38: Connected to the database successfully
-2024/06/08 11:39:11 main.go:30: Birthday Greetings Service is running
-2024/06/08 11:39:11 main.go:38: Пользователь 1 подписался на уведомление о др пользователя 2
-2024/06/08 11:39:11 main.go:52: Birthday Greetings Service is stop
-2024/06/08 11:39:59 logging.go:19: Logger initialized
-2024/06/08 11:39:59 db.go:38: Connected to the database successfully
-2024/06/08 11:39:59 main.go:30: Birthday Greetings Service is running
-2024/06/08 11:39:59 main.go:39: test user 3 добавлен в базу данных
-2024/06/08 11:39:59 main.go:47: Пользователь 1 подписался на уведомление о др пользователя 3
-2024/06/08 11:39:59 main.go:52: Birthday Greetings Service is stop
-2024/06/08 11:43:03 logging.go:19: Logger initialized
-2024/06/08 11:43:03 db.go:38: Connected to the database successfully
-2024/06/08 11:43:03 main.go:30: Birthday Greetings Service is running
-2024/06/08 11:43:03 main.go:59: Пользователь 1 подписан на уведомление о др пользователя 2
-2024/06/08 11:43:03 main.go:59: Пользователь 1 подписан на уведомление о др пользователя 3
-2024/06/08 11:43:03 main.go:65: Birthday Greetings Service is stop
-2024/06/08 11:44:13 logging.go:19: Logger initialized
-2024/06/08 11:44:13 db.go:38: Connected to the database successfully
-2024/06/08 11:44:13 main.go:30: Birthday Greetings Service is running
-2024/06/08 11:44:13 main.go:57: Просто остановка
-2024/06/08 11:46:31 logging.go:19: Logger initialized
-2024/06/08 11:46:31 db.go:38: Connected to the database successfully
-2024/06/08 11:46:31 main.go:29: Birthday Greetings Service is running
-2024/06/08 11:46:31 main.go:67: Подписка пользователя 1 удалена с пользователя 3
-2024/06/08 11:46:31 main.go:69: Birthday Greetings Service is stop
-2024/06/08 11:48:36 logging.go:19: Logger initialized
-2024/06/08 11:48:36 db.go:38: Connected to the database successfully
-2024/06/08 11:48:36 main.go:30: Birthday Greetings Service is running
-2024/06/08 11:48:36 main.go:76: Подписка пользователя 1 на пользователя 2 - true
-2024/06/08 11:48:36 main.go:78: Birthday Greetings Service is stop
+2024/06/08 17:15:33 logging.go:19: Logger initialized
+2024/06/08 17:15:33 db.go:65: Connected to the database successfully
+2024/06/08 17:15:36 main.go:34: Birthday Greetings Service is running
+2024/06/08 17:17:33 logging.go:19: Logger initialized
+2024/06/08 17:17:33 db.go:65: Connected to the database successfully
+2024/06/08 17:17:33 main.go:34: Birthday Greetings Service is running
+2024/06/08 17:23:15 logging.go:19: Logger initialized
+2024/06/08 17:23:15 db.go:65: Connected to the database successfully
+2024/06/08 17:23:15 main.go:34: Birthday Greetings Service is running
+2024/06/08 17:30:03 logging.go:19: Logger initialized
+2024/06/08 17:30:03 db.go:65: Connected to the database successfully
+2024/06/08 17:30:03 main.go:34: Birthday Greetings Service is running
+2024/06/08 17:32:37 logging.go:19: Logger initialized
+2024/06/08 17:32:37 db.go:65: Connected to the database successfully
+2024/06/08 17:32:37 main.go:34: Birthday Greetings Service is running
+2024/06/08 17:36:11 logging.go:19: Logger initialized
+2024/06/08 17:36:11 db.go:65: Connected to the database successfully
+2024/06/08 17:36:12 main.go:34: Birthday Greetings Service is running
+2024/06/09 08:50:56 logging.go:19: Logger initialized
+2024/06/09 08:50:56 db.go:65: Connected to the database successfully
+2024/06/09 08:50:57 main.go:34: Birthday Greetings Service is running
+2024/06/09 08:51:48 logging.go:19: Logger initialized
+2024/06/09 08:51:48 db.go:65: Connected to the database successfully
+2024/06/09 08:51:48 main.go:34: Birthday Greetings Service is running
+2024/06/09 09:14:42 logging.go:19: Logger initialized
+2024/06/09 09:14:42 db.go:65: Connected to the database successfully
+2024/06/09 09:14:42 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:18:53 logging.go:19: Logger initialized
+2024/06/09 09:18:53 db.go:65: Connected to the database successfully
+2024/06/09 09:18:53 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:19:26 logging.go:19: Logger initialized
+2024/06/09 09:19:26 db.go:65: Connected to the database successfully
+2024/06/09 09:19:26 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:20:22 logging.go:19: Logger initialized
+2024/06/09 09:20:22 db.go:65: Connected to the database successfully
+2024/06/09 09:20:22 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:23:50 logging.go:19: Logger initialized
+2024/06/09 09:23:50 db.go:65: Connected to the database successfully
+2024/06/09 09:23:50 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:25:58 logging.go:19: Logger initialized
+2024/06/09 09:25:58 db.go:65: Connected to the database successfully
+2024/06/09 09:25:58 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:32:36 logging.go:19: Logger initialized
+2024/06/09 09:32:36 db.go:65: Connected to the database successfully
+2024/06/09 09:32:36 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:33:52 logging.go:19: Logger initialized
+2024/06/09 09:33:52 db.go:65: Connected to the database successfully
+2024/06/09 09:33:52 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:37:14 logging.go:19: Logger initialized
+2024/06/09 09:37:14 db.go:65: Connected to the database successfully
+2024/06/09 09:37:15 main.go:36: Birthday Greetings Service is running
+2024/06/09 09:45:54 logging.go:19: Logger initialized
+2024/06/09 09:45:54 db.go:65: Connected to the database successfully
+2024/06/09 09:45:55 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:05:47 logging.go:19: Logger initialized
+2024/06/09 10:05:47 db.go:65: Connected to the database successfully
+2024/06/09 10:05:48 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:07:58 logging.go:19: Logger initialized
+2024/06/09 10:07:58 db.go:65: Connected to the database successfully
+2024/06/09 10:07:58 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:09:22 logging.go:19: Logger initialized
+2024/06/09 10:09:22 db.go:65: Connected to the database successfully
+2024/06/09 10:09:23 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:12:50 logging.go:19: Logger initialized
+2024/06/09 10:12:50 db.go:65: Connected to the database successfully
+2024/06/09 10:12:50 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:15:26 logging.go:19: Logger initialized
+2024/06/09 10:15:26 db.go:65: Connected to the database successfully
+2024/06/09 10:15:26 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:15:39 logging.go:19: Logger initialized
+2024/06/09 10:15:39 db.go:65: Connected to the database successfully
+2024/06/09 10:15:39 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:16:06 logging.go:19: Logger initialized
+2024/06/09 10:16:06 db.go:65: Connected to the database successfully
+2024/06/09 10:16:06 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:16:24 logging.go:19: Logger initialized
+2024/06/09 10:16:24 db.go:65: Connected to the database successfully
+2024/06/09 10:16:24 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:16:43 logging.go:19: Logger initialized
+2024/06/09 10:16:43 db.go:65: Connected to the database successfully
+2024/06/09 10:16:43 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:17:30 logging.go:19: Logger initialized
+2024/06/09 10:17:30 db.go:65: Connected to the database successfully
+2024/06/09 10:17:31 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:23:56 logging.go:19: Logger initialized
+2024/06/09 10:23:56 db.go:65: Connected to the database successfully
+2024/06/09 10:23:56 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:25:47 logging.go:19: Logger initialized
+2024/06/09 10:25:47 db.go:65: Connected to the database successfully
+2024/06/09 10:25:47 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:45:52 logging.go:19: Logger initialized
+2024/06/09 10:45:52 db.go:65: Connected to the database successfully
+2024/06/09 10:45:52 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:50:17 logging.go:19: Logger initialized
+2024/06/09 10:50:18 db.go:65: Connected to the database successfully
+2024/06/09 10:50:18 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:50:42 logging.go:19: Logger initialized
+2024/06/09 10:50:42 db.go:65: Connected to the database successfully
+2024/06/09 10:50:43 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:51:40 logging.go:19: Logger initialized
+2024/06/09 10:51:40 db.go:65: Connected to the database successfully
+2024/06/09 10:51:45 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:55:01 logging.go:19: Logger initialized
+2024/06/09 10:55:01 db.go:65: Connected to the database successfully
+2024/06/09 10:55:01 main.go:36: Birthday Greetings Service is running
+2024/06/09 10:57:43 logging.go:19: Logger initialized
+2024/06/09 10:57:43 db.go:65: Connected to the database successfully
+2024/06/09 10:57:45 main.go:36: Birthday Greetings Service is running
+2024/06/09 13:33:13 logging.go:19: Logger initialized
+2024/06/09 13:33:13 db.go:65: Connected to the database successfully
+2024/06/09 13:33:14 main.go:36: Birthday Greetings Service is running
+2024/06/09 14:17:29 logging.go:19: Logger initialized
+2024/06/09 14:17:29 db.go:65: Connected to the database successfully
+2024/06/09 14:17:30 main.go:36: Birthday Greetings Service is running
+2024/06/09 14:19:51 logging.go:19: Logger initialized
+2024/06/09 14:19:51 db.go:65: Connected to the database successfully
+2024/06/09 14:19:51 main.go:36: Birthday Greetings Service is running
+2024/06/09 14:20:37 logging.go:19: Logger initialized
+2024/06/09 14:20:37 db.go:65: Connected to the database successfully
+2024/06/09 14:20:38 main.go:36: Birthday Greetings Service is running
+2024/06/09 15:26:24 logging.go:19: Logger initialized
+2024/06/09 15:26:24 db.go:65: Connected to the database successfully
+2024/06/09 15:26:24 main.go:36: Birthday Greetings Service is running
+2024/06/09 16:25:24 logging.go:19: Logger initialized
+2024/06/09 16:25:24 db.go:65: Connected to the database successfully
+2024/06/09 16:25:24 main.go:33: Birthday Greetings Service is running
+2024/06/09 16:25:54 logging.go:19: Logger initialized
+2024/06/09 16:25:54 db.go:65: Connected to the database successfully
+2024/06/09 16:25:54 main.go:36: Birthday Greetings Service is running
+2024/06/09 22:42:28 logging.go:19: Logger initialized
+2024/06/09 22:42:28 db.go:65: Connected to the database successfully
+2024/06/09 22:42:29 main.go:36: Birthday Greetings Service is running
+2024/06/10 08:21:24 logging.go:19: Logger initialized
+2024/06/10 08:21:24 db.go:65: Connected to the database successfully
+2024/06/10 08:21:25 main.go:36: Birthday Greetings Service is running
+2024/06/10 08:21:29 logging.go:19: Logger initialized
+2024/06/10 08:21:29 db.go:65: Connected to the database successfully
+2024/06/10 08:21:29 main.go:36: Birthday Greetings Service is running
+2024/06/12 07:42:10 logging.go:19: Logger initialized
+2024/06/12 07:47:05 logging.go:19: Logger initialized
+2024/06/12 07:47:05 db.go:65: Connected to the database successfully
+2024/06/12 07:50:55 logging.go:19: Logger initialized
+2024/06/12 07:50:55 db.go:65: Connected to the database successfully
+2024/06/12 08:05:36 logging.go:19: Logger initialized
+2024/06/12 08:05:36 db.go:65: Connected to the database successfully
+2024/06/12 08:05:42 main.go:104: Birthday Greetings Service is stop
+2024/06/12 08:14:55 logging.go:19: Logger initialized
+2024/06/12 08:14:56 db.go:65: Connected to the database successfully
+2024/06/12 08:15:40 logging.go:19: Logger initialized
+2024/06/12 08:15:40 db.go:65: Connected to the database successfully
+2024/06/12 08:15:45 main.go:108: Birthday Greetings Service is stop
+2024/06/12 08:17:55 logging.go:19: Logger initialized
+2024/06/12 08:17:55 db.go:65: Connected to the database successfully
+2024/06/12 08:18:01 main.go:107: Birthday Greetings Service is stop
+2024/06/12 08:19:00 logging.go:19: Logger initialized
+2024/06/12 08:19:00 db.go:65: Connected to the database successfully
+2024/06/12 08:20:34 logging.go:19: Logger initialized
+2024/06/12 08:20:34 db.go:65: Connected to the database successfully
+2024/06/12 08:20:42 main.go:107: Birthday Greetings Service is stop
+2024/06/12 08:22:15 logging.go:19: Logger initialized
+2024/06/12 08:22:15 db.go:65: Connected to the database successfully
+2024/06/12 08:22:21 main.go:107: Birthday Greetings Service is stop
+2024/06/12 08:28:25 logging.go:19: Logger initialized
+2024/06/12 08:28:26 db.go:65: Connected to the database successfully
+2024/06/12 08:28:32 main.go:102: Birthday Greetings Service is stop
+2024/06/12 08:35:15 logging.go:19: Logger initialized
+2024/06/12 08:35:15 db.go:65: Connected to the database successfully
+2024/06/12 08:35:22 main.go:106: Birthday Greetings Service is stop
+2024/06/12 08:37:50 logging.go:19: Logger initialized
+2024/06/12 08:37:50 db.go:65: Connected to the database successfully
+2024/06/12 08:37:57 main.go:93: Birthday Greetings Service is stop
+2024/06/12 08:40:11 logging.go:19: Logger initialized
+2024/06/12 08:40:11 db.go:65: Connected to the database successfully
+2024/06/12 08:40:22 main.go:91: Birthday Greetings Service is stop
+2024/06/12 08:46:23 logging.go:19: Logger initialized
+2024/06/12 08:46:23 db.go:65: Connected to the database successfully
+2024/06/12 08:47:09 logging.go:19: Logger initialized
+2024/06/12 08:47:09 db.go:65: Connected to the database successfully
+2024/06/12 08:47:27 logging.go:19: Logger initialized
+2024/06/12 08:47:28 db.go:65: Connected to the database successfully
+2024/06/12 08:54:45 logging.go:19: Logger initialized
+2024/06/12 08:54:45 db.go:65: Connected to the database successfully
+2024/06/12 09:31:33 logging.go:19: Logger initialized
+2024/06/12 09:31:33 db.go:65: Connected to the database successfully
+2024/06/12 09:32:19 logging.go:19: Logger initialized
+2024/06/12 09:32:19 db.go:65: Connected to the database successfully
+2024/06/12 11:42:40 logging.go:19: Logger initialized
+2024/06/12 11:42:40 db.go:65: Connected to the database successfully
+2024/06/12 14:03:36 logging.go:19: Инициализация логгера
+2024/06/12 14:03:36 db.go:65: Успешное подключение к базе данных.
