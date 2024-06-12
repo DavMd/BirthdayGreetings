@@ -351,7 +351,14 @@ func (s *BotService) handleUnsubscribeCommandArgs(message *tgbotapi.Message, use
 }
 
 func (s *BotService) handleGetAllUserSubscriptions(message *tgbotapi.Message) {
-	subscriptions, err := s.subService.GetSubscriptions(message.From.ID)
+
+	user, err := s.userService.GetUserByTgID(message.From.ID)
+	if err != nil {
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Не удалось получить пользователя: "+err.Error())
+		s.bot.Send(msg)
+		return
+	}
+	subscriptions, err := s.subService.GetSubscriptions(user.ID)
 	if err != nil {
 		msg := tgbotapi.NewMessage(message.Chat.ID, "Не удалось получить подписки пользователя: "+err.Error())
 		s.bot.Send(msg)
@@ -361,6 +368,8 @@ func (s *BotService) handleGetAllUserSubscriptions(message *tgbotapi.Message) {
 	for _, sub := range subscriptions {
 		returnMessage += sub.Username + "\n"
 	}
+	logging.Logger.Println(len(subscriptions))
+	logging.Logger.Println(returnMessage)
 	msg := tgbotapi.NewMessage(message.Chat.ID, returnMessage)
 	s.bot.Send(msg)
 
