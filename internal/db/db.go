@@ -151,21 +151,21 @@ func IsSubscribed(subscriberID, subscribedUserID int64) (bool, error) {
 	return exists, nil
 }
 
-func GetSubscribers(userID int64) ([]models.User, error) {
-	query := `SELECT users.id, users.username, users.password, users.telegram_id, users.birthday 
+func GetSubscribers(userID int64) ([]models.UserBirthLayout, error) {
+	query := `SELECT users.username, users.telegram_id, users.birthday 
 			FROM subscriptions 
-			JOIN users ON subscriptions.subscriber_id = users.id 
-			WHERE subscriptions.subscribed_user_id = $1`
+			JOIN users ON subscriptions.subscribed_user_id = users.id 
+			WHERE subscriptions.user_id = $1`
 	rows, err := DB.Query(query, userID)
 	if err != nil {
 		return nil, errors.New(400, fmt.Sprintf("не удалось получить пользователей: %v", err))
 	}
 	defer rows.Close()
 
-	var subscribers []models.User
+	var subscribers []models.UserBirthLayout
 	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.TelegramID, &user.Birthday); err != nil {
+		var user models.UserBirthLayout
+		if err := rows.Scan(&user.Username, &user.TelegramID, &user.Birthday); err != nil {
 			return nil, errors.New(400, fmt.Sprintf("ошибка в получении пользователя: %v", err))
 		}
 		subscribers = append(subscribers, user)
